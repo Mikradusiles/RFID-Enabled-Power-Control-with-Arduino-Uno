@@ -61,10 +61,9 @@ void resetRFIDReader() {
   digitalWrite(RST_PIN, HIGH);
   delay(100);
   
-  // Reinitialize the RFID reader
+  // Reinitialize and check the RFID reader
   mfrc522.PCD_Init();
   
-  // Recheck the RFID reader
   if (mfrc522.PCD_PerformSelfTest()) {
     Serial.println(F("RFID reader reset and self-test passed."));
   } else {
@@ -90,9 +89,9 @@ void readTagsFromFile() {
 
   while (file.available() && allowedTagsCount < TAG_ARRAY_SIZE) {
     String line = file.readStringUntil('\n');
-    line.trim(); // Remove any leading/trailing whitespace
+    line.trim();
 
-    if (line.length() == 0) continue; // Skip empty lines
+    if (line.length() == 0) continue;
 
     // Check if the line starts with 'I' (indicating invalid)
     if (line.charAt(0) != 'I') {
@@ -100,7 +99,6 @@ void readTagsFromFile() {
       int endIdx = line.indexOf(';', startIdx);
       String uidStr = line.substring(startIdx, endIdx);
 
-      // Parse the UID string
       parseUID(uidStr, allowedTags[allowedTagsCount]);
 
       allowedTagsCount++;
@@ -117,7 +115,7 @@ void parseUID(String uidStr, byte* uidArray) {
   while (strIndex < uidStr.length() && byteIndex < 4) {
     String byteStr = uidStr.substring(strIndex, strIndex + 2);
     uidArray[byteIndex] = (byte) strtol(byteStr.c_str(), NULL, 16);
-    strIndex += 3; // Move to the next part (skip delimiter)
+    strIndex += 3;
     byteIndex++;
   }
 }
@@ -127,7 +125,6 @@ byte getAllowedTagIndex(byte *uid, byte uidSize)
 
   for (byte i = 0; i < allowedTagsCount; i++)
   {
-
     bool match = true;
 
     for (byte j = 0; j < uidSize; j++)
@@ -172,9 +169,9 @@ void addTag(byte newTag[], char *owner)
 
   for (int i = 0; i < 4; i++)
   {
-    userFile.print(allowedTags[allowedTagsCount][i], HEX); // Save tag in HEX format
+    userFile.print(allowedTags[allowedTagsCount][i], HEX);
     if (i < 3)
-      userFile.print(":"); // Separate tag bytes with colon
+      userFile.print(":");
   }
   userFile.print(";");
   userFile.print(owner);
@@ -318,28 +315,10 @@ void getTags()
     return;
   }
 
-  //for (int i = 0; i < allowedTagsCount; i++)
   while(userFile.available())
   {
     String line = userFile.readStringUntil('\n');
     Serial.println(line);
-    /*int commaIndex = line.indexOf(';');
-    char* invalid = "false";
-    if (line[0] == 'I') {
-      invalid = "true ";
-      i--;
-    }
-    line = line.substring(commaIndex + 1);
-    commaIndex = line.indexOf(';');
-
-    if (commaIndex != -1)
-    {
-      tag = line.substring(0, commaIndex);
-      user = line.substring(commaIndex + 1);
-    }
-    sprintf(buffer, "%s for user %s, invalid: %s", tag.c_str(), user.c_str(), invalid);
-
-    Serial.println(buffer); */
   }
   userFile.close();
   endSD();
@@ -359,7 +338,6 @@ void handleAdd(char* name)
       continue;
     }
 
-    // Select one of the cards
     if (!mfrc522.PICC_ReadCardSerial()) {
       continue;
     }
@@ -387,9 +365,8 @@ void handleAdd(char* name)
 void handleRemove(char* user)
 {
   
-  int index = atoi(user); // Attempt to convert to an integer
+  int index = atoi(user);
 
-  // Check if the conversion was successful and within valid range
   if (index > 0 || user[0] == '0')
   {
     if (index >= 0 && index < TAG_ARRAY_SIZE)
@@ -422,10 +399,8 @@ void handleRemove(char* user)
         extractedString = extractedString.substring(commaIndex + 1);
         int len = extractedString.length();
 
-        // Allocate memory for the char array
         userFromFile = new char[len + 1];
 
-        // Copy the String content to the char array
         extractedString.toCharArray(userFromFile, len + 1);
         userFromFile[len] = '\0';
       }
@@ -457,7 +432,6 @@ void getEvents()
     return;
   }
 
-  // Read and print all lines in the log file
   while (logFile.available())
   {
     String line = logFile.readStringUntil('\n');
@@ -465,7 +439,6 @@ void getEvents()
   }
   logFile.close();
 
-  // Ask the user if they want to delete the events
   Serial.println(F("Do you want to delete the saved events? (y/n)"));
   startTime = millis();
   while ((millis() - startTime) <= TIMEOUT_DURATION)
@@ -475,7 +448,7 @@ void getEvents()
       String input = Serial.readStringUntil('\n');
       if (input[0] == 'y')
       {
-        SD.remove(eventFile); // Delete the log file
+        SD.remove(eventFile);
         Serial.println(F("Events deleted."));
         break;
       }
@@ -496,12 +469,10 @@ void getEvents()
 
 void logEvent(byte tagIndex)
 {
-  // Open the log file for appending
   initSD();
 
-  // Create a new event
   byte tag[4];
-  memcpy(tag, allowedTags[tagIndex], 4); // Copy the tag bytes
+  memcpy(tag, allowedTags[tagIndex], 4);
   File userFile = SD.open(userFileName, FILE_READ);
   if (!userFile)
   {
@@ -535,15 +506,14 @@ void logEvent(byte tagIndex)
     Serial.println(F("Error opening log file!"));
     return;
   }
-  // Write the event to the log file in CSV format
   DateTime now = rtc.now();
   logFile.print(now.timestamp());
   logFile.print(";");
   for (int i = 0; i < 4; i++)
   {
-    logFile.print(tag[i], HEX); // Save tag in HEX format
+    logFile.print(tag[i], HEX);
     if (i < 3)
-      logFile.print(":"); // Separate tag bytes with colon
+      logFile.print(":");
   }
   logFile.print(";");
   logFile.println(owner);
@@ -556,7 +526,6 @@ void logEvent(byte tagIndex)
 
 void setup()
 {
-  // put your setup code here, to run once:
   Serial.begin(9600);
 
   pinMode(SD_POWER_PIN, OUTPUT);
@@ -598,7 +567,6 @@ void setup()
   //addTag(newTag, newTagOwner); //Test user
 
   Serial.println(F("Enter your command: "));
-  // syncTimestamp();
 }
 
 void loop() {
@@ -607,8 +575,8 @@ void loop() {
 
   if (waiting && (millis() - startTime) >= TIMEOUT_DURATION) {
     Serial.println(F("Waited too long: reset. Enter new command:"));
-    inputIndex = 0; // Reset the input buffer index
-    memset(inputBuffer, 0, STRING_MAX); // Clear the buffer
+    inputIndex = 0;
+    memset(inputBuffer, 0, STRING_MAX); 
     waiting = false;
     waitingForAdd = false;
     waitingForRemove = false;
@@ -623,7 +591,7 @@ void loop() {
 
     if (incomingByte == '\n') {
       waiting = false;
-      inputBuffer[inputIndex] = '\0'; // Null-terminate the string
+      inputBuffer[inputIndex] = '\0';
 
       if (waitingForAdd) {
         handleAdd(inputBuffer);
@@ -635,11 +603,11 @@ void loop() {
         handleCommand(inputBuffer);
       }
 
-      inputIndex = 0; // Reset the input buffer index
-      memset(inputBuffer, 0, STRING_MAX); // Clear the buffer
+      inputIndex = 0;
+      memset(inputBuffer, 0, STRING_MAX);
     } else {
       if (inputIndex < STRING_MAX - 1) {
-        inputBuffer[inputIndex++] = incomingByte; // Add the incoming byte to the buffer
+        inputBuffer[inputIndex++] = incomingByte;
       }
     }
   }
@@ -648,12 +616,10 @@ void loop() {
     return;
   }
 
-  // Select one of the cards
   if (!mfrc522.PICC_ReadCardSerial()) {
     return;
   }
 
-  // Show some details of the PICC (that is: the tag/card)
   Serial.print(F("Card UID:"));
   for (byte i = 0; i < mfrc522.uid.size; i++) {
     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
@@ -667,6 +633,7 @@ void loop() {
     Serial.println(F("Access Granted"));
     digitalWrite(POWER_PIN, HIGH); // Power the USB output
 
+    // TODO enable when functionality is tested
     //unsigned long beforeLogging = millis();
     logEvent(allowedTag);
     //unsigned long timeForLogging = millis() - beforeLogging;
