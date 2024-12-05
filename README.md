@@ -1,5 +1,5 @@
 # RFID-Enabled Power Control with Arduino Uno
-Arduino code that enables the power of a USB connection for a certain timespan after scanning a valid RFID tag. By powering tue USB connection of a master/slave socket strip, this code can be used to enable any kind of electrical device, not only devices with USB connection. Designed for high reliability and long running times.
+Arduino code that enables the power of a USB connection for a certain timespan after scanning a valid RFID tag. By powering the USB connection of a master/slave socket strip, this code can be used to enable any kind of electrical device, not only devices with USB connection. Designed for high reliability and long running times.
 
 The valid RFID tags are stored on a connected SD card and can be changed over the serial connection (potentially a bluetooth connection) or by simply editing the files on the SD card and restarting the Arduino with the new files. Events are stored on a log file on the same SD card.
 
