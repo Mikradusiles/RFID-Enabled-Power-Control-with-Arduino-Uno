@@ -20,4 +20,4 @@ TODO
 ## Known Issues
 The power output is supposed to be enabled for a specific timespan (44 seconds). This is not the exact value at the moment because the logging takes an indefinite amount of time. There is a currently disabled solution in the code that has to be tested first.
 
-Witing in the log files may lead to a corrupted log file and all following logs can not be saved anymore. A simple workaround with new log files will be implemented.
+Writing in the log files may lead to a corrupted log file and all following logs can not be saved anymore. A simple workaround with new log files will be implemented.
